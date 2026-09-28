@@ -1,0 +1,7 @@
+# Déploiement sur Render (site statique) : Render lit ce fichier si vous créez le site via « Blueprint ».
+services:
+  - type: web
+    name: ma-boite
+    runtime: static
+    buildCommand: ""
+    staticPublishPath: .

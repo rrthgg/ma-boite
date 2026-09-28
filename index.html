@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ma Boîte — simulation d'entreprise</title>
+<meta name="description" content="Montez votre boîte et survivez au marché : trésorerie, banque, levées de fonds, concurrents. Huit secteurs, et un mode battle royale à 100 entreprises.">
+<meta property="og:title" content="Ma Boîte — simulation d'entreprise">
+<meta property="og:description" content="Huit secteurs, jusqu'à 100 entreprises dans l'arène. Et vous, vous tenez combien de zones ?">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28'%3E%3Crect width='28' height='28' fill='%23ff6a13'/%3E%3Crect x='4' y='15' width='4' height='9' fill='%230a0a0a'/%3E%3Crect x='12' y='10' width='4' height='14' fill='%230a0a0a'/%3E%3Crect x='20' y='4' width='4' height='20' fill='%230a0a0a'/%3E%3C/svg%3E">
+<style>
+:root {
+  --fond: #000; --panneau: #0e0e0e; --panneau2: #161616; --bord: #232323;
+  --txt: #ececec; --mut: #8c8c8c; --discret: #4d4d4d;
+  --acc: #ff6a13; --acc2: #ff8c42; --vert: #2fd67b; --rouge: #ff4d4f; --jaune: #f5c518;
+  --sans: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  --titre: "Segoe UI Variable Display", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  --mono: "Cascadia Mono", "JetBrains Mono", Consolas, "SF Mono", Menlo, monospace;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--fond); color: var(--txt); font: 16px/1.55 var(--sans); -webkit-font-smoothing: antialiased; }
+a { color: inherit; }
+.contenu { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+.mono { font-family: var(--mono); }
+
+/* en-tête */
+header { border-bottom: 1px solid var(--bord); }
+.barre { display: flex; align-items: center; justify-content: space-between; height: 64px; }
+.marque { display: flex; align-items: center; gap: 12px; text-decoration: none; font: 700 15px/1 var(--titre); letter-spacing: .08em; }
+nav a { color: var(--mut); text-decoration: none; font-size: 14px; margin-left: 26px; }
+nav a:hover { color: var(--txt); }
+
+/* bandeau façon cotations */
+.bandeau { overflow: hidden; border-bottom: 1px solid var(--bord); background: #050505; }
+.defile { display: flex; gap: 42px; width: max-content; padding: 9px 0; font: 13px var(--mono); color: var(--mut); animation: defile 38s linear infinite; }
+.defile b { color: var(--txt); font-weight: 600; margin-right: 8px; }
+.haut { color: var(--vert); } .bas { color: var(--rouge); }
+@keyframes defile { to { transform: translateX(-50%); } }
+@media (prefers-reduced-motion: reduce) { .defile { animation: none; } }
+
+/* accroche */
+.accroche { display: grid; grid-template-columns: 1.15fr .85fr; gap: 56px; align-items: center; padding-top: 84px; padding-bottom: 76px; }
+.sur-titre { font: 600 12px var(--mono); color: var(--acc); letter-spacing: .14em; text-transform: uppercase; }
+h1 { font: 700 clamp(38px, 5.4vw, 62px)/1.02 var(--titre); letter-spacing: -.025em; margin: 16px 0 20px; }
+h1 span { color: var(--acc); }
+.chapo { color: #bdbdbd; font-size: 18px; max-width: 34em; margin: 0 0 32px; }
+.actions { display: flex; gap: 12px; flex-wrap: wrap; }
+.btn { display: inline-flex; align-items: center; gap: 10px; padding: 14px 22px; border-radius: 4px; font: 700 14px var(--sans); letter-spacing: .04em; text-decoration: none; border: 1px solid transparent; cursor: pointer; }
+.btn.plein { background: var(--acc); color: #0a0a0a; }
+.btn.plein:hover { background: var(--acc2); }
+.btn.vide { border-color: var(--bord); color: var(--txt); background: transparent; }
+.btn.vide:hover { border-color: #3a3a3a; }
+.petit { color: var(--mut); font-size: 13px; margin-top: 16px; }
+
+/* la carte de résultat, comme dans le jeu */
+.carte { background: linear-gradient(#050505, #0a0e14); border: 1px solid var(--bord); border-radius: 6px; padding: 28px 28px 22px; font-family: var(--sans); }
+.carte .ligne-h { display: flex; justify-content: space-between; font: 700 12px var(--mono); letter-spacing: .1em; color: var(--mut); padding-bottom: 14px; border-bottom: 1px solid var(--bord); }
+.carte .ligne-h b { color: var(--acc); }
+.carte .nom { text-align: center; font: 700 24px var(--titre); margin-top: 22px; }
+.carte .sect { text-align: center; color: var(--mut); font-size: 14px; }
+.carte .titre-r { text-align: center; color: var(--jaune); font: 700 19px var(--titre); margin-top: 18px; }
+.carte .place { text-align: center; font: 700 86px/1 var(--mono); color: var(--jaune); margin: 6px 0 4px; letter-spacing: -.04em; }
+.carte .sur { text-align: center; color: var(--mut); font-size: 14px; }
+.carte svg { display: block; width: 100%; height: 86px; margin: 18px 0 6px; }
+.carte .pied { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.carte .pied div { background: var(--panneau2); border-radius: 4px; padding: 8px 10px; }
+.carte .pied small { display: block; font: 700 10px var(--sans); letter-spacing: .08em; color: var(--mut); text-transform: uppercase; }
+.carte .pied strong { font: 700 16px var(--mono); }
+
+/* sections */
+section { padding: 72px 0; border-top: 1px solid var(--bord); }
+h2 { font: 700 30px/1.15 var(--titre); letter-spacing: -.015em; margin: 12px 0 10px; }
+.intro { color: var(--mut); max-width: 40em; margin: 0 0 36px; }
+.secteurs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--bord); border: 1px solid var(--bord); border-radius: 6px; overflow: hidden; }
+.secteur { background: var(--panneau); padding: 20px 20px 22px; }
+.secteur .code { display: inline-block; font: 700 11px var(--mono); color: var(--acc); border: 1px solid #3a2414; padding: 2px 6px; border-radius: 3px; }
+.secteur h3 { font: 700 16px var(--titre); margin: 12px 0 6px; }
+.secteur p { margin: 0; color: var(--mut); font-size: 14px; }
+.secteur .cle { margin-top: 10px; font: 12px var(--mono); color: #bdbdbd; }
+
+.modes { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.mode { background: var(--panneau); border: 1px solid var(--bord); border-radius: 6px; padding: 28px; }
+.mode.fort { border-color: #4a2a12; background: linear-gradient(180deg, #140b04, var(--panneau) 60%); }
+.mode h3 { font: 700 20px var(--titre); margin: 10px 0 10px; }
+.mode ul { margin: 0; padding: 0; list-style: none; }
+.mode li { padding: 9px 0; border-top: 1px solid var(--bord); color: #cfcfcf; font-size: 15px; }
+.mode li:first-child { border-top: 0; }
+.mode li b { color: var(--txt); }
+.chiffres { display: flex; gap: 40px; margin-top: 18px; }
+.chiffres div strong { display: block; font: 700 30px var(--mono); color: var(--acc); }
+.chiffres div span { color: var(--mut); font-size: 13px; }
+
+.etapes { counter-reset: e; display: grid; gap: 14px; max-width: 760px; }
+.etape { display: grid; grid-template-columns: 44px 1fr; gap: 16px; background: var(--panneau); border: 1px solid var(--bord); border-radius: 6px; padding: 18px 20px; }
+.etape::before { counter-increment: e; content: "0" counter(e); font: 700 20px var(--mono); color: var(--acc); }
+.etape h3 { margin: 0 0 4px; font: 700 16px var(--titre); }
+.etape p { margin: 0 0 10px; color: var(--mut); font-size: 14px; }
+.etape p:last-child { margin-bottom: 0; }
+.code-bloc { display: flex; align-items: center; justify-content: space-between; gap: 12px; background: #050505; border: 1px solid var(--bord); border-radius: 4px; padding: 10px 12px; font: 13px var(--mono); color: #e6e6e6; overflow-x: auto; }
+.code-bloc button { flex: none; background: transparent; border: 1px solid var(--bord); color: var(--mut); border-radius: 3px; padding: 4px 9px; font: 600 12px var(--sans); cursor: pointer; }
+.code-bloc button:hover { color: var(--txt); border-color: #3a3a3a; }
+.note { color: var(--mut); font-size: 13px; margin-top: 18px; max-width: 760px; }
+
+footer { border-top: 1px solid var(--bord); padding: 28px 0 40px; color: var(--discret); font-size: 13px; }
+footer .contenu { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+
+@media (max-width: 900px) {
+  .accroche { grid-template-columns: 1fr; padding-top: 56px; padding-bottom: 56px; gap: 40px; }
+  .secteurs { grid-template-columns: repeat(2, 1fr); }
+  .modes { grid-template-columns: 1fr; }
+  nav a:not(:last-child) { display: none; }
+}
+@media (max-width: 520px) {
+  .contenu { padding-left: 16px; padding-right: 16px; }
+  .secteurs { grid-template-columns: 1fr; }
+  .chiffres { gap: 24px; }
+  .carte .place { font-size: 70px; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="contenu barre">
+    <a class="marque" href="#">
+      <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><rect width="28" height="28" fill="#ff6a13"/><rect x="4" y="15" width="4" height="9" fill="#0a0a0a"/><rect x="12" y="10" width="4" height="14" fill="#0a0a0a"/><rect x="20" y="4" width="4" height="20" fill="#0a0a0a"/></svg>
+      MA BOÎTE
+    </a>
+    <nav>
+      <a href="#secteurs">Secteurs</a>
+      <a href="#modes">Modes de jeu</a>
+      <a href="#installer">Installer</a>
+      <a href="ma_boite.zip" class="btn plein" style="padding:9px 14px;margin-left:26px" download>Télécharger</a>
+    </nav>
+  </div>
+</header>
+
+<div class="bandeau" aria-hidden="true">
+  <div class="defile" id="defile">
+    <span><b>IND</b><span class="haut">▲ 2,4 %</span></span>
+    <span><b>SAAS</b><span class="haut">▲ 6,1 %</span></span>
+    <span><b>BIO</b><span class="bas">▼ 12,8 %</span></span>
+    <span><b>JV</b><span class="haut">▲ 31,0 %</span></span>
+    <span><b>LUX</b><span class="haut">▲ 0,9 %</span></span>
+    <span><b>AÉRO</b><span class="bas">▼ 1,7 %</span></span>
+    <span><b>DIST</b><span class="haut">▲ 0,3 %</span></span>
+    <span><b>ÉNR</b><span class="bas">▼ 4,2 %</span></span>
+    <span><b>TAUX</b>3,61 %</span>
+    <span><b>ÉLEC</b>72 €/MWh</span>
+  </div>
+</div>
+
+<main>
+  <div class="contenu accroche">
+    <div>
+      <div class="sur-titre">Simulation d'entreprise</div>
+      <h1>Montez votre boîte.<br><span>Survivez au marché.</span></h1>
+      <p class="chapo">100 000 € de mise, des investisseurs à convaincre, une banque qui vous note chaque mois et des concurrents qui ne vous feront pas de cadeau. Trésorerie, bilan, levées de fonds, rachats : tout est calculé comme dans une vraie entreprise.</p>
+      <div class="actions">
+        <a class="btn plein" href="ma_boite.zip" download>TÉLÉCHARGER LE JEU  →</a>
+        <a class="btn vide" href="#installer">Comment l'installer</a>
+      </div>
+      <p class="petit">Gratuit · Windows, macOS et Linux · nécessite Python 3.10 ou plus récent</p>
+    </div>
+
+    <div class="carte" aria-label="Exemple de carte de résultat">
+      <div class="ligne-h"><b>MA BOÎTE</b><span>BATTLE ROYALE · NORMAL</span></div>
+      <div class="nom">Nébula Softworks</div>
+      <div class="sect">Logiciel SaaS B2B (secteur tiré au sort)</div>
+      <div class="titre-r">Sur le podium</div>
+      <div class="place">3e</div>
+      <div class="sur">sur 100 entreprises</div>
+      <svg viewBox="0 0 300 86" preserveAspectRatio="none" aria-hidden="true">
+        <line x1="0" y1="58" x2="300" y2="58" stroke="#555" stroke-dasharray="6 6" stroke-width="1.2"/>
+        <polygon fill="rgba(245,197,24,.16)" points="0,86 0,60 25,62 50,64 75,61 100,57 125,55 150,50 175,44 200,40 225,31 250,24 275,18 300,10 300,86"/>
+        <polyline fill="none" stroke="#f5c518" stroke-width="2.5" points="0,60 25,62 50,64 75,61 100,57 125,55 150,50 175,44 200,40 225,31 250,24 275,18 300,10"/>
+      </svg>
+      <div class="pied">
+        <div><small>Multiple</small><strong>× 4,8</strong></div>
+        <div><small>Zones</small><strong>6/7</strong></div>
+        <div><small>Valeur</small><strong>8,1 M€</strong></div>
+      </div>
+    </div>
+  </div>
+
+  <section id="secteurs">
+    <div class="contenu">
+      <div class="sur-titre">Huit secteurs</div>
+      <h2>Chaque métier a ses règles.</h2>
+      <p class="intro">On ne dirige pas une usine comme une start-up de logiciel. Chaque secteur a son modèle économique, sa métrique clé et ses façons de faire faillite.</p>
+      <div class="secteurs">
+        <div class="secteur"><span class="code">IND</span><h3>Industrie lourde</h3><p>Des usines à 9 M€, des marges fines. Une baisse de 15 % de la demande, et les coûts fixes vous écrasent.</p><div class="cle">taux d'utilisation</div></div>
+        <div class="secteur"><span class="code">SAAS</span><h3>Logiciel SaaS</h3><p>Démarrage lent, puis des revenus qui tombent chaque mois. La valorisation explose… si vos clients restent.</p><div class="cle">churn · LTV/CAC</div></div>
+        <div class="secteur"><span class="code">BIO</span><h3>Biotech</h3><p>Zéro chiffre d'affaires pendant des années. Un essai réussi fait tout, un échec vous ferme.</p><div class="cle">phases cliniques</div></div>
+        <div class="secteur"><span class="code">JV</span><h3>Jeu vidéo</h3><p>Dix-huit mois de développement, puis tout se joue le mois de la sortie.</p><div class="cle">wishlists · note critique</div></div>
+        <div class="secteur"><span class="code">LUX</span><h3>Luxe</h3><p>Des marges énormes, des volumes minuscules. Baisser vos prix, c'est détruire la marque.</p><div class="cle">exclusivité · réputation</div></div>
+        <div class="secteur"><span class="code">AÉRO</span><h3>Aéronautique</h3><p>Des contrats à plusieurs millions, gagnés sur appel d'offres. En retard, les pénalités tombent.</p><div class="cle">carnet de commandes</div></div>
+        <div class="secteur"><span class="code">DIST</span><h3>Distribution</h3><p>3 % de marge nette, des volumes géants. Tout se joue au centime et au jour de stock.</p><div class="cle">rotation des stocks</div></div>
+        <div class="secteur"><span class="code">ÉNR</span><h3>Énergie</h3><p>Des centrales financées à la dette, un prix de l'électricité qui fait le yo-yo, des taux qui montent.</p><div class="cle">ROIC · contrats long terme</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="modes">
+    <div class="contenu">
+      <div class="sur-titre">Modes de jeu</div>
+      <h2>Trois ans pour réussir. Ou cent entreprises pour une place.</h2>
+      <p class="intro">Deux façons de jouer, un seul score : combien vaut l'argent qu'on vous a confié à la fin de la partie.</p>
+      <div class="modes">
+        <div class="mode">
+          <div class="sur-titre">Classique</div>
+          <h3>Votre secteur, vos règles</h3>
+          <ul>
+            <li><b>0 à 10 concurrents</b> pilotés par l'ordinateur, chacun avec sa stratégie</li>
+            <li><b>3, 5 ou 8 ans</b> pour bâtir l'entreprise qui vaudra le plus</li>
+            <li><b>Tutoriel guidé</b> et explication de chaque terme financier au survol</li>
+            <li><b>Rachats</b> de fournisseurs, de sous-traitants ou de concurrents</li>
+          </ul>
+        </div>
+        <div class="mode fort">
+          <div class="sur-titre">Battle royale</div>
+          <h3>100 entreprises, une seule debout</h3>
+          <ul>
+            <li><b>Secteur tiré au sort</b> : il faut s'adapter vite</li>
+            <li><b>La zone se resserre</b> tous les trois mois et élimine les moins bien classées</li>
+            <li><b>Le butin</b> des éliminées se rachète à moitié prix</li>
+            <li><b>Une carte à partager</b> : « 3e sur 100 », et vous ?</li>
+          </ul>
+          <div class="chiffres">
+            <div><strong class="mono">100</strong><span>entreprises</span></div>
+            <div><strong class="mono">7</strong><span>zones</span></div>
+            <div><strong class="mono">1</strong><span>survivante</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="installer">
+    <div class="contenu">
+      <div class="sur-titre">Installer</div>
+      <h2>Trois minutes, et c'est parti.</h2>
+      <p class="intro">Le jeu est un programme Python. Il se lance en local, sans compte ni connexion.</p>
+      <div class="etapes">
+        <div class="etape"><div>
+          <h3>Installer Python</h3>
+          <p>Téléchargez Python sur <a href="https://www.python.org/downloads/" target="_blank" rel="noopener">python.org</a>. Sous Windows, cochez « Add python.exe to PATH » pendant l'installation.</p>
+        </div></div>
+        <div class="etape"><div>
+          <h3>Télécharger le jeu</h3>
+          <p>Récupérez <a href="ma_boite.zip" download>ma_boite.zip</a> et extrayez-le dans un dossier.</p>
+        </div></div>
+        <div class="etape"><div>
+          <h3>Lancer</h3>
+          <p>Ouvrez un terminal (PowerShell sous Windows) dans ce dossier, puis :</p>
+          <div class="code-bloc"><span>python -m pip install -r requirements.txt</span><button type="button" data-copie>Copier</button></div>
+          <p></p>
+          <div class="code-bloc"><span>python ma_boite.py</span><button type="button" data-copie>Copier</button></div>
+        </div></div>
+      </div>
+      <p class="note">La première commande installe Pillow, qui sert à créer l'image de votre résultat à partager. Le jeu fonctionne aussi sans. Sous macOS et Linux, remplacez <span class="mono">python</span> par <span class="mono">python3</span>.</p>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="contenu">
+    <span>Ma Boîte · simulation d'entreprise</span>
+    <span class="mono">v6.6</span>
+  </div>
+</footer>
+
+<script>
+  // bandeau : on double le contenu pour un défilement sans à-coup
+  const d = document.getElementById("defile");
+  d.innerHTML += d.innerHTML;
+  document.querySelectorAll("[data-copie]").forEach(b => b.addEventListener("click", async () => {
+    const texte = b.previousElementSibling.textContent;
+    try { await navigator.clipboard.writeText(texte); b.textContent = "Copié"; }
+    catch (e) { b.textContent = "Sélectionnez"; }
+    setTimeout(() => (b.textContent = "Copier"), 1600);
+  }));
+</script>
+</body>
+</html>
